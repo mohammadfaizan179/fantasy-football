@@ -1,6 +1,7 @@
 from rest_framework import generics, status
-
-from account.serializers import RegisterSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from account.serializers import RegisterSerializer, LoginSerializer, CustomTokenObtainPairSerializer
 from common.constants import STH_WENT_WRONG_MSG
 from common.utils import generate_response
 
@@ -9,20 +10,14 @@ class UserRegisterAPIView(generics.GenericAPIView):
     serializer_class = RegisterSerializer
 
     def post(self, request):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
         try:
-            serializer = RegisterSerializer(data=self.request.data)
-            serializer.is_valid(raise_exception=True)
             user = serializer.save()
-            data = {
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            }
-            message = "Registration completed successfully."
             return generate_response(
-                message=message,
+                message="Registration completed successfully.",
                 status=status.HTTP_201_CREATED,
-                data=data
+                data=self.serializer_class(user).data
             )
         except Exception:
             return generate_response(
@@ -30,3 +25,17 @@ class UserRegisterAPIView(generics.GenericAPIView):
                 message=STH_WENT_WRONG_MSG,
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class LoginAPIView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        return generate_response(
+            message="Login in successfully.",
+            status=status.HTTP_200_OK,
+            data=serializer.validated_data
+        )

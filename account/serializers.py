@@ -1,6 +1,9 @@
-from rest_framework import serializers
+from django.contrib.auth import authenticate
+from rest_framework import serializers, status
 from django.contrib.auth.password_validation import validate_password
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 from account.models import User
 
 
@@ -41,3 +44,58 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(validators=[validate_password])
+
+    class Meta:
+        model = User
+        fields = ['email', 'password']
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(validators=[validate_password])
+
+    class Meta:
+        model = User
+        fields = ['email', 'password']
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['user_id'] = user.id
+        token['email'] = user.email
+        token['first_name'] = user.first_name
+        token['last_name'] = user.last_name
+
+        return {
+            'access': str(token.access_token),
+            'refresh': str(token)
+        }
+
+    def validate(self, attrs):
+        user_obj = User.objects.filter(email=attrs.get("email").lower().strip()).first()
+        if user_obj is not None:
+            credentials = {
+                'username': user_obj.email,
+                'password': attrs.get("password")
+            }
+            user = authenticate(**credentials)
+            if user:
+                tokens = self.get_token(user)
+                return {
+                    "user_id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "tokens": tokens
+                }
+            else:
+                raise serializers.ValidationError("Invalid credentials. Kindly retry with correct credentials")
+        else:
+            raise serializers.ValidationError({"email": "Email does not exists"}, status.HTTP_400_BAD_REQUEST)
