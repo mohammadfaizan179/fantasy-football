@@ -5,9 +5,10 @@ from django.conf import settings
 class Team(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    slogan = models.CharField(max_length=255)
     capital = models.DecimalField(max_digits=10, decimal_places=2, default=5000000.00)
     created_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def total_value(self):
