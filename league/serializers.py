@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.db import IntegrityError
-from league.models import Team
+
+from common.constants import POSITION_CHOICES
+from league.models import Team, Player
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -26,3 +28,25 @@ class TeamSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+    display_position = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Player
+        fields = ['id', 'name', 'position', 'value', 'team', 'for_sale', 'sale_price', 'created_at', 'update_at',
+                  'display_position']
+        read_only_fields = ['value', 'team', 'created_at', 'update_at']
+
+    def get_display_position(self, player):
+        return POSITION_CHOICES.get(player.position)
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        player = Player.objects.create(
+            name=validated_data['name'],
+            position=validated_data['position'],
+            team=request.user.team
+        )
+        return player
