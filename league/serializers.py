@@ -35,7 +35,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'name', 'position', 'value', 'team', 'for_sale', 'sale_price', 'created_at', 'update_at',
+        fields = ['id', 'name', 'position', 'value', 'team', 'for_sale', 'sale_price', 'created_at', 'updated_at',
                   'display_position']
         read_only_fields = ['value', 'team', 'created_at', 'update_at']
 
@@ -50,3 +50,7 @@ class PlayerSerializer(serializers.ModelSerializer):
             team=request.user.team
         )
         return player
+
+
+class SetPlayerForSaleSerializer(serializers.Serializer):
+    sale_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)

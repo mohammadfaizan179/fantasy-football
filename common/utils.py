@@ -8,9 +8,9 @@ def generate_response(success=True, message='success', status=200, custom_code=0
         "status": status,
         "custom_code": custom_code
     }
-    if data:
+    if data is not None:
         resp_data["data"] = data
-    if errors:
+    if errors is not None:
         resp_data["errors"] = errors
 
     return Response(

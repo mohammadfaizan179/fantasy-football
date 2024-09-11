@@ -1,14 +1,14 @@
 from django.shortcuts import render
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated, ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from common.constants import STH_WENT_WRONG_MSG, POSITION_CHOICES, BAD_REQUEST, PERMISSION_ERROR
 from common.utils import generate_response
 from league.models import Team, Player
 from league.permissions import TeamOwner, PlayerOwner
-from league.serializers import TeamSerializer, PlayerSerializer
+from league.serializers import TeamSerializer, PlayerSerializer, SetPlayerForSaleSerializer
 
 
 # Create your views here.
@@ -315,10 +315,101 @@ class PlayerViewSet(ModelViewSet):
     )
     def my_team_players(self, request):
         try:
-            players = Player.objects.filter(team=request.user.team).order_by('-created_at')
+            if hasattr(request.user, 'team'):
+                players = Player.objects.filter(team=request.user.team).order_by('-created_at')
+                serializer = self.get_serializer(players, many=True)
+                return generate_response(data=serializer.data)
+            return generate_response(message="You don't have team.")
+        except Exception:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SetPlayerForSaleAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, PlayerOwner]
+    serializer_class = SetPlayerForSaleSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(request.user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            player = Player.objects.get(id=kwargs.get('pk'))
+            self.check_object_permissions(request, player)
+            player.for_sale = True
+            player.sale_price = serializer.validated_data['sale_price']
+            player.save()
+            return generate_response(message="Player is set for sale.")
+        except ValidationError as err:
+            return generate_response(
+                message=BAD_REQUEST,
+                success=False,
+                status=status.HTTP_400_BAD_REQUEST,
+                errors=err.detail
+            )
+        except Player.DoesNotExist:
+            return generate_response(
+                message="Player not found",
+                success=False,
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except (PermissionDenied, NotAuthenticated) as err:
+            return generate_response(
+                message=err.detail,
+                success=False,
+                status=status.HTTP_403_FORBIDDEN
+            )
+        except Exception:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class RemovePlayerFromSaleAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, PlayerOwner]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            player = Player.objects.get(id=kwargs.get('pk'))
+            self.check_object_permissions(request, player)
+            player.for_sale = False
+            player.sale_price = None
+            player.save()
+            return generate_response(message="Player is removed from sale.")
+        except Player.DoesNotExist:
+            return generate_response(
+                message="Player not found",
+                success=False,
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except (PermissionDenied, NotAuthenticated) as err:
+            return generate_response(
+                message=err.detail,
+                success=False,
+                status=status.HTTP_403_FORBIDDEN
+            )
+        except Exception:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PlayersForSaleAPIView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = PlayerSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            players = Player.objects.filter(for_sale=True).order_by('-updated_at')
             serializer = self.get_serializer(players, many=True)
             return generate_response(data=serializer.data)
-        except Exception as err:
+        except Exception:
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,

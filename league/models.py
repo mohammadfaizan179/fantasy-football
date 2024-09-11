@@ -30,7 +30,7 @@ class Player(models.Model):
     for_sale = models.BooleanField(default=False)
     sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Transfer(models.Model):
@@ -40,4 +40,4 @@ class Transfer(models.Model):
     transfer_amount = models.DecimalField(max_digits=10, decimal_places=2)
     completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    update_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
