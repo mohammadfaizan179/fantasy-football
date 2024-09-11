@@ -1,7 +1,8 @@
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from account.serializers import RegisterSerializer, LoginSerializer, CustomTokenObtainPairSerializer
+from account.serializers import RegisterSerializer, LoginSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
 from common.constants import STH_WENT_WRONG_MSG
 from common.utils import generate_response
 
@@ -39,3 +40,12 @@ class LoginAPIView(TokenObtainPairView):
             status=status.HTTP_200_OK,
             data=serializer.validated_data
         )
+
+
+class ProfileAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user)
+        return generate_response(data=serializer.data)

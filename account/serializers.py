@@ -99,3 +99,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 raise serializers.ValidationError("Invalid credentials. Kindly retry with correct credentials")
         else:
             raise serializers.ValidationError({"email": "Email does not exists"}, status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email']
