@@ -49,3 +49,26 @@ class ProfileAPIView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         serializer = self.serializer_class(request.user)
         return generate_response(data=serializer.data)
+
+
+class ProfileUpdateAPIView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = serializer.save(request=request)
+            serializer = self.serializer_class(user)
+            data = {"user": serializer.data}
+            return generate_response(
+                message="Profile updated successfully.",
+                data=data
+            )
+        except Exception:
+            return generate_response(
+                success=False,
+                message=STH_WENT_WRONG_MSG,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
