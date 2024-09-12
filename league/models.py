@@ -33,7 +33,7 @@ class Player(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Transfer(models.Model):
+class Transaction(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     seller_team = models.ForeignKey(Team, related_name='sales', on_delete=models.CASCADE)
     buyer_team = models.ForeignKey(Team, related_name='purchases', on_delete=models.CASCADE, null=True, blank=True)

@@ -1,14 +1,18 @@
-from django.shortcuts import render
+import random
+from decimal import Decimal
+
+from django.db import transaction
 from rest_framework import status, generics
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated, ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
-from common.constants import STH_WENT_WRONG_MSG, POSITION_CHOICES, BAD_REQUEST, PERMISSION_ERROR
+
+from common.constants import STH_WENT_WRONG_MSG, BAD_REQUEST
 from common.utils import generate_response
-from league.models import Team, Player
+from league.models import Team, Player, Transaction
 from league.permissions import TeamOwner, PlayerOwner
-from league.serializers import TeamSerializer, PlayerSerializer, SetPlayerForSaleSerializer
+from league.serializers import TeamSerializer, PlayerSerializer, PlayerTransactionSerializer
 
 
 # Create your views here.
@@ -330,7 +334,7 @@ class PlayerViewSet(ModelViewSet):
 
 class SetPlayerForSaleAPIView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated, PlayerOwner]
-    serializer_class = SetPlayerForSaleSerializer
+    serializer_class = PlayerTransactionSerializer
 
     def post(self, request, *args, **kwargs):
         try:
@@ -339,7 +343,7 @@ class SetPlayerForSaleAPIView(generics.GenericAPIView):
             player = Player.objects.get(id=kwargs.get('pk'))
             self.check_object_permissions(request, player)
             player.for_sale = True
-            player.sale_price = serializer.validated_data['sale_price']
+            player.sale_price = serializer.validated_data['price']
             player.save()
             return generate_response(message="Player is set for sale.")
         except ValidationError as err:
@@ -410,6 +414,115 @@ class PlayersForSaleAPIView(generics.GenericAPIView):
             serializer = self.get_serializer(players, many=True)
             return generate_response(data=serializer.data)
         except Exception:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class BuyPlayerAPIView(generics.GenericAPIView):
+    serializer_class = PlayerTransactionSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = self.serializer_class(request.user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            buyer = request.user
+            buying_price = serializer.validated_data['price']
+
+            # Check buyer has team or not
+            if not hasattr(buyer, 'team'):
+                return generate_response(
+                    message="You don't have team. Kindly create a team first to buy a player.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+            # Get player from db
+            player = Player.objects.get(id=kwargs.get('pk'))
+
+            buyer_team = buyer.team
+            seller_team = player.team
+
+            # Check player is listed for sale
+            if not player.for_sale:
+                return generate_response(
+                    message="Player is not listed for sale.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+            # Check buyer's given price matches the players sale price
+            if buying_price != player.sale_price:
+                return generate_response(
+                    message="Price must match the player's listed sale price.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+            # Check buyer and seller is not same
+            if seller_team == buyer_team:
+                return generate_response(
+                    message="You can't buy your own player.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+            # Check buyer team's capital is sufficient to buy the player
+            if buyer_team.capital < buying_price:
+                return generate_response(
+                    message="Your team's capital is insufficient to but this player.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                )
+
+            with transaction.atomic():
+                # Deduct the price from buyer's team capital
+                buyer_team.capital -= buying_price
+                buyer_team.save()
+
+                # Add the price to seller's team capital
+                seller_team.capital += buying_price
+                seller_team.save()
+
+                # Transfer player to buyer's team
+                player.team = buyer_team
+                player.for_sale = False  # Mark player as not for sale anymore
+                player.sale_price = None
+                player.save()
+
+                # Calculate a random increment between 1% and 10%
+                random_increment = random.uniform(0.01, 0.10)  # Random number between 0.01 (1%) and 0.10 (10%)
+                new_value = player.value * Decimal(1 + random_increment)  # Increment player value by the random percentage
+                player.value = round(new_value, 2)  # Round to 2 decimal places
+                player.save()
+
+                # Record the transaction
+                Transaction.objects.create(
+                    buyer_team=buyer_team,
+                    seller_team=seller_team,
+                    player=player,
+                    transfer_amount=buying_price,
+                    completed=True
+                )
+
+            return generate_response(message="Player bought successfully.")
+        except ValidationError as err:
+            return generate_response(
+                message=BAD_REQUEST,
+                success=False,
+                status=status.HTTP_400_BAD_REQUEST,
+                errors=err.detail
+            )
+        except Player.DoesNotExist:
+            return generate_response(
+                message="Player not found.",
+                success=False,
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as err:
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,

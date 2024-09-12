@@ -52,5 +52,5 @@ class PlayerSerializer(serializers.ModelSerializer):
         return player
 
 
-class SetPlayerForSaleSerializer(serializers.Serializer):
-    sale_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+class PlayerTransactionSerializer(serializers.Serializer):
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
