@@ -507,7 +507,6 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 player.team = buyer_team
                 player.for_sale = False  # Mark player as not for sale anymore
                 player.sale_price = None
-                player.save()
 
                 # Calculate a random increment between 1% and 10%
                 random_increment = random.uniform(0.01, 0.10)  # Random number between 0.01 (1%) and 0.10 (10%)
