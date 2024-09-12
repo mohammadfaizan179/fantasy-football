@@ -16,7 +16,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'player', 'seller_team', 'buyer_team', 'transfer_amount', 'completed']
+    list_display = ['id', 'player', 'seller_team', 'buyer_team', 'transfer_amount', 'inactive']
 
 
 

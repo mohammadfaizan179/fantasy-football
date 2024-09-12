@@ -521,7 +521,7 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                     seller_team=seller_team,
                     player=player,
                     transfer_amount=buying_price,
-                    completed=True
+                    inactive=True
                 )
 
             return generate_response(message="Player bought successfully.")
@@ -552,7 +552,7 @@ class TransactionsHistoryAPIView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            transactions = Transaction.objects.filter(completed=True).order_by('-created_at').all()
+            transactions = Transaction.objects.all().order_by('-created_at')
             serializer = self.serializer_class(transactions, many=True)
             return generate_response(data=serializer.data)
         except Exception as err:
@@ -593,7 +593,7 @@ class MyTransactionsHistoryAPIView(generics.GenericAPIView):
         try:
             if hasattr(request.user, 'team'):
                 transactions = Transaction.objects.filter(
-                    (Q(buyer_team=request.user.team) | Q(seller_team=request.user.team)) & Q(completed=True)
+                    Q(buyer_team=request.user.team) | Q(seller_team=request.user.team)
                 ).order_by('-created_at').all()
                 serializer = self.serializer_class(transactions, many=True, context={"request": request})
                 return generate_response(data=serializer.data)

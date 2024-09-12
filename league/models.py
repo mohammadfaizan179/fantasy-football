@@ -38,6 +38,6 @@ class Transaction(models.Model):
     seller_team = models.ForeignKey(Team, related_name='sales', on_delete=models.CASCADE)
     buyer_team = models.ForeignKey(Team, related_name='purchases', on_delete=models.CASCADE, null=True, blank=True)
     transfer_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    completed = models.BooleanField(default=False)
+    inactive = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

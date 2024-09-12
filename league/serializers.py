@@ -74,7 +74,7 @@ class TransactionsHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ['id', 'player', 'player_name', 'seller_team', 'buyer_team', 'transfer_amount', 'completed',
+        fields = ['id', 'player', 'player_name', 'seller_team', 'buyer_team', 'transfer_amount', 'inactive',
                   'created_at']
 
 
@@ -94,5 +94,5 @@ class MyTransactionsHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ['id', 'my_team_role', 'player', 'player_name', 'opposite_team', 'transfer_amount', 'completed',
+        fields = ['id', 'my_team_role', 'player', 'player_name', 'opposite_team', 'transfer_amount', 'inactive',
                   'created_at']
