@@ -6,10 +6,18 @@ from league.models import Team, Player, Transaction
 
 
 class TeamSerializer(serializers.ModelSerializer):
+    total_value = serializers.SerializerMethodField()
+
     class Meta:
         model = Team
-        fields = ['id', 'user', 'name', 'slogan', 'capital', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'name', 'slogan', 'capital', 'total_value', 'created_at', 'updated_at']
         read_only_fields = ['user', 'capital', 'created_at', 'updated_at']
+
+    def get_total_value(self, obj):
+        team_value = 0
+        for player in obj.players.all():
+            team_value += player.value
+        return team_value
 
     def create(self, validated_data):
         try:

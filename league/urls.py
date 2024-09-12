@@ -5,8 +5,8 @@ from league.views import TeamViewSet, PlayerViewSet, SetPlayerForSaleAPIView, Re
     MyTransactionsHistoryAPIView
 
 router = DefaultRouter()
-router.register("league/team", TeamViewSet, basename="team")
-router.register("team/player", PlayerViewSet, basename="player")
+router.register("team", TeamViewSet, basename="team")
+router.register("player", PlayerViewSet, basename="player")
 
 urlpatterns = [
     path("", include(router.urls)),

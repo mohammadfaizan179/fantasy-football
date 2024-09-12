@@ -20,13 +20,17 @@ from league.serializers import TeamSerializer, PlayerSerializer, PlayerTransacti
 # Create your views here.
 class TeamViewSet(ModelViewSet):
     serializer_class = TeamSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            permission_classes = [AllowAny]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        else:
+            # action update, delete
+            permission_classes = [IsAuthenticated, TeamOwner]
 
-        if self.action == 'update' or self.action == 'destroy':
-            self.permission_classes.append(TeamOwner)
-        return [permission() for permission in self.permission_classes]
+        return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
         try:
