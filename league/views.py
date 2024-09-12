@@ -28,7 +28,6 @@ class TeamViewSet(ModelViewSet):
         elif self.action == 'create':
             permission_classes = [IsAuthenticated]
         elif self.action in ['update', 'destroy']:
-            # action update, delete
             permission_classes = [IsAuthenticated, TeamOwner]
 
         return [permission() for permission in permission_classes]
@@ -193,8 +192,7 @@ class PlayerViewSet(ModelViewSet):
         elif self.action == 'create':
             permission_classes = [IsAuthenticated]
         elif self.action in ['update', 'destroy']:
-            # action update, delete
-            permission_classes = [IsAuthenticated, TeamOwner]
+            permission_classes = [IsAuthenticated, PlayerOwner]
 
         return [permission() for permission in permission_classes]
 

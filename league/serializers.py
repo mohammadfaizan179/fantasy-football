@@ -1,16 +1,18 @@
 from rest_framework import serializers
 from django.db import IntegrityError
 
+from account.serializers import ProfileSerializer
 from common.constants import POSITION_CHOICES
 from league.models import Team, Player, Transaction
 
 
 class TeamSerializer(serializers.ModelSerializer):
+    owner = ProfileSerializer(source='user', read_only=True)
     total_value = serializers.SerializerMethodField()
 
     class Meta:
         model = Team
-        fields = ['id', 'user', 'name', 'slogan', 'capital', 'total_value', 'created_at', 'updated_at']
+        fields = ['id', 'owner', 'name', 'slogan', 'capital', 'total_value', 'created_at', 'updated_at']
         read_only_fields = ['user', 'capital', 'created_at', 'updated_at']
 
     def get_total_value(self, obj):
@@ -39,6 +41,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
 
 class PlayerSerializer(serializers.ModelSerializer):
+    team = TeamSerializer(read_only=True)
     display_position = serializers.SerializerMethodField()
 
     class Meta:
@@ -66,13 +69,13 @@ class PlayerTransactionSerializer(serializers.Serializer):
 
 class TransactionsHistorySerializer(serializers.ModelSerializer):
     player_name = serializers.CharField(source='player.name')
-    seller_team_name = serializers.CharField(source='seller_team.name')
-    buyer_team_name = serializers.CharField(source='buyer_team.name')
+    seller_team = TeamSerializer(read_only=True)
+    buyer_team = TeamSerializer(read_only=True)
 
     class Meta:
         model = Transaction
-        fields = ['id', 'player', 'player_name', 'seller_team', 'seller_team_name', 'buyer_team', 'buyer_team_name',
-                  'transfer_amount', 'completed', 'created_at']
+        fields = ['id', 'player', 'player_name', 'seller_team', 'buyer_team', 'transfer_amount', 'completed',
+                  'created_at']
 
 
 class MyTransactionsHistorySerializer(serializers.ModelSerializer):
@@ -87,10 +90,7 @@ class MyTransactionsHistorySerializer(serializers.ModelSerializer):
     def get_opposite_team(self, obj):
         login_user = self.context.get('request').user
         opposite_team = obj.buyer_team if login_user.team == obj.seller_team else obj.seller_team
-        return {
-            'id': opposite_team.id,
-            'name': opposite_team.name
-        }
+        return TeamSerializer(opposite_team).data
 
     class Meta:
         model = Transaction
