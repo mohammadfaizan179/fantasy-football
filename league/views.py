@@ -202,6 +202,12 @@ class PlayerViewSet(ModelViewSet):
                 data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
+            if request.user.team.players.count() >= 20:
+                return generate_response(
+                    message="You have already 20 players in your team. Can't add more player.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                )
             team = serializer.save(request=request)
             team_data = self.get_serializer(team).data
             return generate_response(
