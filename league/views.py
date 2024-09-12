@@ -2,6 +2,7 @@ import random
 from decimal import Decimal
 
 from django.db import transaction
+from django.db.models import Q
 from rest_framework import status, generics
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated, ValidationError
@@ -12,7 +13,8 @@ from common.constants import STH_WENT_WRONG_MSG, BAD_REQUEST
 from common.utils import generate_response
 from league.models import Team, Player, Transaction
 from league.permissions import TeamOwner, PlayerOwner
-from league.serializers import TeamSerializer, PlayerSerializer, PlayerTransactionSerializer
+from league.serializers import TeamSerializer, PlayerSerializer, PlayerTransactionSerializer, \
+    TransactionsHistorySerializer, MyTransactionsHistorySerializer
 
 
 # Create your views here.
@@ -522,6 +524,66 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 success=False,
                 status=status.HTTP_404_NOT_FOUND
             )
+        except Exception as err:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class TransactionsHistoryAPIView(generics.GenericAPIView):
+    serializer_class = TransactionsHistorySerializer
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            transactions = Transaction.objects.filter(completed=True).order_by('-created_at').all()
+            serializer = self.serializer_class(transactions, many=True)
+            return generate_response(data=serializer.data)
+        except Exception as err:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class TransactionHistoryAPIView(generics.GenericAPIView):
+    serializer_class = TransactionsHistorySerializer
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            transaction = Transaction.objects.get(id=kwargs.get('pk'))
+            serializer = self.serializer_class(transaction)
+            return generate_response(data=serializer.data)
+        except Transaction.DoesNotExist:
+            return generate_response(
+                message="Transaction not found.",
+                success=False,
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as err:
+            return generate_response(
+                message=STH_WENT_WRONG_MSG,
+                success=False,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class MyTransactionsHistoryAPIView(generics.GenericAPIView):
+    serializer_class = MyTransactionsHistorySerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            if hasattr(request.user, 'team'):
+                transactions = Transaction.objects.filter(
+                    (Q(buyer_team=request.user.team) | Q(seller_team=request.user.team)) & Q(completed=True)
+                ).order_by('-created_at').all()
+                serializer = self.serializer_class(transactions, many=True, context={"request": request})
+                return generate_response(data=serializer.data)
+            return generate_response(message="You have not created team yet.")
         except Exception as err:
             return generate_response(
                 message=STH_WENT_WRONG_MSG,

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.db import IntegrityError
 
 from common.constants import POSITION_CHOICES
-from league.models import Team, Player
+from league.models import Team, Player, Transaction
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -54,3 +54,37 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 class PlayerTransactionSerializer(serializers.Serializer):
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
+
+
+class TransactionsHistorySerializer(serializers.ModelSerializer):
+    player_name = serializers.CharField(source='player.name')
+    seller_team_name = serializers.CharField(source='seller_team.name')
+    buyer_team_name = serializers.CharField(source='buyer_team.name')
+
+    class Meta:
+        model = Transaction
+        fields = ['id', 'player', 'player_name', 'seller_team', 'seller_team_name', 'buyer_team', 'buyer_team_name',
+                  'transfer_amount', 'completed', 'created_at']
+
+
+class MyTransactionsHistorySerializer(serializers.ModelSerializer):
+    my_team_role = serializers.SerializerMethodField()
+    player_name = serializers.CharField(source='player.name')
+    opposite_team = serializers.SerializerMethodField()
+
+    def get_my_team_role(self, obj):
+        login_user = self.context.get('request').user
+        return "Seller" if login_user.team == obj.seller_team else "Buyer"
+
+    def get_opposite_team(self, obj):
+        login_user = self.context.get('request').user
+        opposite_team = obj.buyer_team if login_user.team == obj.seller_team else obj.seller_team
+        return {
+            'id': opposite_team.id,
+            'name': opposite_team.name
+        }
+
+    class Meta:
+        model = Transaction
+        fields = ['id', 'my_team_role', 'player', 'player_name', 'opposite_team', 'transfer_amount', 'completed',
+                  'created_at']
