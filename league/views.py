@@ -22,11 +22,12 @@ class TeamViewSet(ModelViewSet):
     serializer_class = TeamSerializer
 
     def get_permissions(self):
+        permission_classes = [IsAuthenticated]
         if self.action in ['retrieve', 'list']:
             permission_classes = [AllowAny]
         elif self.action == 'create':
             permission_classes = [IsAuthenticated]
-        else:
+        elif self.action in ['update', 'destroy']:
             # action update, delete
             permission_classes = [IsAuthenticated, TeamOwner]
 
@@ -184,13 +185,18 @@ class TeamViewSet(ModelViewSet):
 
 class PlayerViewSet(ModelViewSet):
     serializer_class = PlayerSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        permission_classes = [IsAuthenticated]
+        if self.action in ['retrieve', 'list']:
+            permission_classes = [AllowAny]
+        elif self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        elif self.action in ['update', 'destroy']:
+            # action update, delete
+            permission_classes = [IsAuthenticated, TeamOwner]
 
-        if self.action == 'update' or self.action == 'destroy':
-            self.permission_classes.append(PlayerOwner)
-        return [permission() for permission in self.permission_classes]
+        return [permission() for permission in permission_classes]
 
     def create(self, request, *args, **kwargs):
         try:
