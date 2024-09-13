@@ -40,6 +40,7 @@ class TeamViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             team = serializer.save(request=request)
             team_data = self.get_serializer(team).data
+            request.logger.info(f"Team is created. Team id: {team.id}")
             return generate_response(
                 message="Team is created successfully.",
                 status=status.HTTP_201_CREATED,
@@ -53,6 +54,7 @@ class TeamViewSet(ModelViewSet):
                 errors=validation_error.detail
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while creating team. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -67,6 +69,7 @@ class TeamViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             team = serializer.save()
             team_data = self.get_serializer(team).data
+            request.logger.info(f"Team is updated. Team id: {team.id}")
             return generate_response(
                 message="Team is updated successfully.",
                 data=team_data
@@ -91,6 +94,7 @@ class TeamViewSet(ModelViewSet):
                 errors=validation_error.detail
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while updating team. Team: {kwargs['id']}. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -101,6 +105,7 @@ class TeamViewSet(ModelViewSet):
         try:
             team = Team.objects.get(id=kwargs.get('pk'))
             serializer = self.get_serializer(team)
+            request.logger.info("This is an informational message.")
             return generate_response(data=serializer.data)
         except Team.DoesNotExist:
             return generate_response(
@@ -109,6 +114,7 @@ class TeamViewSet(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting team. Team: {kwargs['id']}. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -121,6 +127,7 @@ class TeamViewSet(ModelViewSet):
             serializer = self.get_serializer(team, many=True)
             return generate_response(data=serializer.data)
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting teams. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -131,6 +138,7 @@ class TeamViewSet(ModelViewSet):
         try:
             team = Team.objects.get(id=kwargs.get('pk'))
             self.check_object_permissions(request, team)
+            request.logger.info(f"Team is deleted. Team id: {team.id}")
             self.perform_destroy(team)
             return generate_response(
                 message="Team deleted successfully",
@@ -149,6 +157,7 @@ class TeamViewSet(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while deleting team. Team: {kwargs['id']}. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -175,6 +184,7 @@ class TeamViewSet(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting my team. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -208,12 +218,13 @@ class PlayerViewSet(ModelViewSet):
                     success=False,
                     status=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 )
-            team = serializer.save(request=request)
-            team_data = self.get_serializer(team).data
+            player = serializer.save(request=request)
+            player_data = self.get_serializer(player).data
+            request.logger.info(f"Player is added in team. Player id: {player.id}")
             return generate_response(
                 message="Player is added in your team successfully.",
                 status=status.HTTP_201_CREATED,
-                data=team_data
+                data=player_data
             )
         except ValidationError as validation_error:
             return generate_response(
@@ -223,6 +234,7 @@ class PlayerViewSet(ModelViewSet):
                 errors=validation_error.detail
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while adding players. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -237,6 +249,7 @@ class PlayerViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             player = serializer.save()
             player_data = self.get_serializer(player).data
+            request.logger.info(f"Player info is updated")
             return generate_response(
                 message="Player details are updated successfully.",
                 data=player_data
@@ -261,6 +274,7 @@ class PlayerViewSet(ModelViewSet):
                 errors=validation_error.detail
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while updating players. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -273,6 +287,7 @@ class PlayerViewSet(ModelViewSet):
             serializer = self.get_serializer(players, many=True)
             return generate_response(data=serializer.data)
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting players. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -291,6 +306,7 @@ class PlayerViewSet(ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while fetching players. Player: {kwargs['pk']}. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -302,6 +318,7 @@ class PlayerViewSet(ModelViewSet):
             player = Player.objects.get(id=kwargs.get('pk'))
             self.check_object_permissions(request, player)
             self.perform_destroy(player)
+            request.logger.info(f"Player is deleted")
             return generate_response(
                 message="Player removed from team successfully.",
                 status=status.HTTP_204_NO_CONTENT
@@ -319,6 +336,7 @@ class PlayerViewSet(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while deleting players. Player: {kwargs['pk']}. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -340,7 +358,8 @@ class PlayerViewSet(ModelViewSet):
                 serializer = self.get_serializer(players, many=True)
                 return generate_response(data=serializer.data)
             return generate_response(message="You don't have team.")
-        except Exception:
+        except Exception as err:
+            request.logger.exception(f"Exception occurred while getting my team players. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -361,6 +380,7 @@ class SetPlayerForSaleAPIView(generics.GenericAPIView):
             player.for_sale = True
             player.sale_price = serializer.validated_data['price']
             player.save()
+            request.logger.info(f"Player '{kwargs['pk']}' is set for sale")
             return generate_response(message="Player is set for sale.")
         except ValidationError as err:
             return generate_response(
@@ -381,7 +401,10 @@ class SetPlayerForSaleAPIView(generics.GenericAPIView):
                 success=False,
                 status=status.HTTP_403_FORBIDDEN
             )
-        except Exception:
+        except Exception as err:
+            request.logger.exception(
+                f"Exception occurred while setting players for sale. Player: {kwargs.get('pk')}. Error: {err}"
+            )
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -399,6 +422,7 @@ class RemovePlayerFromSaleAPIView(generics.GenericAPIView):
             player.for_sale = False
             player.sale_price = None
             player.save()
+            request.logger.info(f"Player '{kwargs['pk']}' is removed from sale list")
             return generate_response(message="Player is removed from sale.")
         except Player.DoesNotExist:
             return generate_response(
@@ -412,7 +436,10 @@ class RemovePlayerFromSaleAPIView(generics.GenericAPIView):
                 success=False,
                 status=status.HTTP_403_FORBIDDEN
             )
-        except Exception:
+        except Exception as err:
+            request.logger.exception(
+                f"Exception occurred while removing players from sale. Player: {kwargs.get('pk')}. Error: {err}"
+            )
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -424,12 +451,13 @@ class PlayersForSaleAPIView(generics.GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = PlayerSerializer
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         try:
             players = Player.objects.filter(for_sale=True).order_by('-updated_at')
             serializer = self.get_serializer(players, many=True)
             return generate_response(data=serializer.data)
-        except Exception:
+        except Exception as err:
+            request.logger.exception(f"Exception occurred while getting players for purchase. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -515,6 +543,9 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 player.save()
 
                 # Record the transaction
+                request.logger.info(
+                    f"Player '{kwargs['pk']}' is transferred. Buyer team: {buyer_team.id}. Seller team: {seller_team.id}"
+                )
                 Transaction.objects.create(
                     buyer_team=buyer_team,
                     seller_team=seller_team,
@@ -538,6 +569,7 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while player transfer. Req: '{request.data}'. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -555,6 +587,7 @@ class TransactionsHistoryAPIView(generics.GenericAPIView):
             serializer = self.serializer_class(transactions, many=True)
             return generate_response(data=serializer.data)
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting transactions. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -578,6 +611,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as err:
+            request.logger.exception(f"Exception occurred while getting transaction '{kwargs.get('pk')}'. Error: {err}")
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
@@ -598,6 +632,9 @@ class MyTransactionsHistoryAPIView(generics.GenericAPIView):
                 return generate_response(data=serializer.data)
             return generate_response(message="You have not created team yet.")
         except Exception as err:
+            request.logger.exception(
+                f"Exception occurred while getting my transactions. User id: {request.user.id}, Error: {err}"
+            )
             return generate_response(
                 message=STH_WENT_WRONG_MSG,
                 success=False,
