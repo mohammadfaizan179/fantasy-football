@@ -1,9 +1,10 @@
 from rest_framework import generics, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from account.serializers import RegisterSerializer, LoginSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
-from common.constants import STH_WENT_WRONG_MSG
+
+from account.serializers import RegisterSerializer, CustomTokenObtainPairSerializer, ProfileSerializer
+from common.constants import STH_WENT_WRONG_MSG, BAD_REQUEST
 from common.utils import generate_response
 
 
@@ -12,14 +13,21 @@ class UserRegisterAPIView(generics.GenericAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = self.serializer_class(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
         try:
+            serializer = self.serializer_class(data=self.request.data)
+            serializer.is_valid(raise_exception=True)
             user = serializer.save()
             return generate_response(
                 message="Registration completed successfully.",
                 status=status.HTTP_201_CREATED,
                 data=self.serializer_class(user).data
+            )
+        except ValidationError as err:
+            return generate_response(
+                message=BAD_REQUEST,
+                success=False,
+                status=status.HTTP_400_BAD_REQUEST,
+                errors=err.detail
             )
         except Exception:
             return generate_response(
