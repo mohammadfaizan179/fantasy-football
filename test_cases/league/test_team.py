@@ -217,7 +217,6 @@ def test_destroy_non_existing_team(auth_client):
     client, user = auth_client
     url = reverse('team-detail', kwargs={'pk': 101})
     response = client.delete(url)
-    print(response.data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.data['message'] == "Team not found"
 

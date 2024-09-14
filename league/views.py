@@ -487,7 +487,8 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 return generate_response(
                     message="You don't have team. Kindly create a team first to buy a player.",
                     success=False,
-                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    custom_code=1500
                 )
 
             # Get player from db
@@ -501,7 +502,8 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 return generate_response(
                     message="Player is not listed for sale.",
                     success=False,
-                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    custom_code=1501
                 )
 
             # Check buyer's given price matches the players sale price
@@ -509,7 +511,8 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 return generate_response(
                     message="Price must match the player's listed sale price.",
                     success=False,
-                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    custom_code=1502
                 )
 
             # Check buyer and seller is not same
@@ -517,7 +520,8 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 return generate_response(
                     message="You can't buy your own player.",
                     success=False,
-                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    custom_code=1503
                 )
 
             # Check buyer team's capital is sufficient to buy the player
@@ -525,7 +529,8 @@ class BuyPlayerAPIView(generics.GenericAPIView):
                 return generate_response(
                     message="Your team's capital is insufficient to but this player.",
                     success=False,
-                    status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    custom_code=1504
                 )
 
             with transaction.atomic():

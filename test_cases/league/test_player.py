@@ -46,7 +46,7 @@ def auth_client(api_client, create_user):
     return api_client, user
 
 
-# ----------- Create Team Test Cases ----------------
+# ----------- Create Player Test Cases ----------------
 @pytest.mark.django_db
 def test_player_create_success(auth_client, create_team):
     client, user = auth_client
@@ -150,7 +150,7 @@ def test_retrieve_non_existent_player(api_client):
     assert response.data['message'] == "Player not found"
 
 
-# ----------- List Team Test Cases ----------------
+# ----------- List Players Test Cases ----------------
 
 @pytest.mark.django_db
 def test_player_list_success(api_client, create_user, create_team, create_player):
@@ -174,7 +174,7 @@ def test_player_list_success_empty_response(api_client, create_user, create_team
     assert response.data['message'] == "success"
 
 
-# ----------- Update Team Test Cases ----------------
+# ----------- Update Player Test Cases ----------------
 
 @pytest.mark.django_db
 def test_player_update_success(auth_client, create_team, create_player):
@@ -257,7 +257,7 @@ def test_anonymous_user_update_player(api_client, create_user, create_team, crea
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-# ----------- Delete Team Test Cases ----------------
+# ----------- Delete Player Test Cases ----------------
 
 @pytest.mark.django_db
 def test_player_destroy_success(auth_client, create_team, create_player):
@@ -274,7 +274,6 @@ def test_destroy_non_existing_team(auth_client):
     client, user = auth_client
     url = reverse('player-detail', kwargs={'pk': 101})
     response = client.delete(url)
-    print(response.data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.data['message'] == "Player not found."
 
@@ -291,7 +290,7 @@ def test_destroy_player_of_other_team(auth_client, create_user, create_team, cre
 
 
 @pytest.mark.django_db
-def test_anonymous_user_destroying_team(api_client, create_user, create_team, create_player):
+def test_anonymous_user_destroying_player(api_client, create_user, create_team, create_player):
     user = create_user()
     team = create_team(user)
     player = create_player('Player - 2', team, 'GK')
@@ -300,7 +299,7 @@ def test_anonymous_user_destroying_team(api_client, create_user, create_team, cr
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-# ----------- My Team Test Cases ----------------
+# ----------- My Players Test Cases ----------------
 
 @pytest.mark.django_db
 def test_my_team_player(auth_client, create_team, create_player):
