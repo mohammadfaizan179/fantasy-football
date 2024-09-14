@@ -54,7 +54,7 @@ def test_team_create_success(auth_client):
 
 
 @pytest.mark.django_db
-def test_user_create_team_with_invalid_request_data(auth_client):
+def test_create_team_with_invalid_request_data(auth_client):
     client, user = auth_client
     url = reverse('team-list')
     data = {

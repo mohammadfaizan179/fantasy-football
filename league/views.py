@@ -212,6 +212,12 @@ class PlayerViewSet(ModelViewSet):
                 data=request.data, context={"request": request}
             )
             serializer.is_valid(raise_exception=True)
+            if not hasattr(request.user, 'team'):
+                return generate_response(
+                    message="You don't have team. Create team first.",
+                    success=False,
+                    status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                )
             if request.user.team.players.count() >= 20:
                 return generate_response(
                     message="You have already 20 players in your team. Can't add more player.",
@@ -348,7 +354,7 @@ class PlayerViewSet(ModelViewSet):
         detail=False,
         methods=['get'],
         url_path='my-team-players',
-        url_name='my_team_players',
+        url_name='my-team-players',
         serializer_class=PlayerSerializer
     )
     def my_team_players(self, request):
