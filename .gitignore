@@ -50,7 +50,7 @@ coverage.xml
 .hypothesis/
 
 # Environment variables
-.env
+fantasy_football/.env
 .env.*
 
 # pip files
