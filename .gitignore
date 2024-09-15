@@ -1,0 +1,95 @@
+# Python bytecode
+*.py[cod]
+*.pyo
+__pycache__/
+
+# Virtual environment
+env/
+venv/
+ENV/
+.venv/
+.Python
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.sqlite3-journal
+*.dat
+
+# Django Migrations
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Media and static files
+media/
+staticfiles/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment variables
+fantasy_football/.env
+.env.*
+
+# pip files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Celery
+celerybeat-schedule
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Local settings
+local_settings.py
+
+# macOS specific
+*.DS_Store
+
+# Windows specific
+*.exe
+*.dll
+*.pdb
+*.com
+*.class
+
+# Ansible retry files
+*.retry
+
+# Sensitive files
+secrets.json
