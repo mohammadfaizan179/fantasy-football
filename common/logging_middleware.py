@@ -13,8 +13,13 @@ class LoggingMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         url_name = request.resolver_match.url_name
 
+        # Ensure the 'logs' directory exists
+        log_dir = 'logs'
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
         # Create a log file for each endpoint
-        log_file = os.path.join('logs', f'{url_name}.log')
+        log_file = os.path.join(log_dir, f'{url_name}.log')
 
         # Create a logger for this endpoint
         logger = logging.getLogger(url_name)
